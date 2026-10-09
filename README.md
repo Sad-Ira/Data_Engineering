@@ -9,11 +9,26 @@ Repository for the ITMO Engineering Data Management project.
 
 ## Homework 2 - data loader
 
-The script `data_loader.py` downloads the dataset from Google Drive with `gdown` (the file is too large for a direct download link) and reads it with `pandas`. On the first run `faa_aws.csv` is saved to the project folder, the following runs reuse the local copy. The script prints the first 10 rows of the table and its size.
+The script `data_loader.py` downloads the dataset from Google Drive with `gdown` (the file is too large for a direct download link) and reads it with `pandas`. On the first run `faa_aws.csv` is saved to the `data/` folder, the following runs reuse the local copy. The script prints the first 10 rows of the table and its size.
 
 Requires Python 3.9+.
 
-### Deployment
+## Homework 3 - data types and parquet
+
+The script was extended with:
+
+- `read_dataset` - short wrapper around `pd.read_csv`;
+- `convert_types` - casts columns to proper dtypes and returns a new DataFrame:
+  `INCIDENT_DATE` becomes `datetime`, integer-like columns become nullable `Int64`,
+  money/coordinates/distance become `float64`, columns with few unique values
+  become `category`;
+- `save_parquet` - writes the resulting DataFrame to `data/faa_aws.parquet`.
+
+The parquet file is 38 MB vs 167 MB for the CSV, and it keeps the dtypes on
+`pd.read_parquet` without re-parsing. It lives in `data/`, which is ignored
+by git, so the binary file never gets into the repository.
+
+## Deployment
 
 ```bash
 # 1. Create a virtual environment in the project folder
@@ -21,7 +36,7 @@ python3 -m venv .venv
 
 # 2. Activate it
 source .venv/bin/activate      # macOS / Linux
-# .venv\Scripts\activate       # Windows
+.venv\Scripts\activate       # Windows
 
 # 3. Install the dependencies
 pip install -r requirements.txt
@@ -34,7 +49,7 @@ python data_loader.py
 ```
 
 On the first run `faa_aws.csv` (~175 MB) is downloaded from Google Drive into
-the current folder, then the script prints the first 10 rows of the dataset.
+the `data/` folder, then the script prints the first 10 rows of the dataset.
 Expected output:
 
 ```
@@ -43,6 +58,7 @@ Dataset size: 316839 rows x 101 columns
 
 ## Structure
 
-- `data_loader.py` - dataset download and preview
+- `data_loader.py` - dataset download, type casting and parquet export
+- `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
 - `requirements.txt` - dependencies
-- `.gitignore` - keeps the dataset (175 MB) and the virtual environment out of git
+- `.gitignore` - keeps the dataset (175 MB), the parquet file and the virtual environment out of git
