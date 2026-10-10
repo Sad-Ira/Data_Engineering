@@ -50,7 +50,7 @@ def convert_types(df: pd.DataFrame) -> pd.DataFrame:
     df["INCIDENT_DATE"] = pd.to_datetime(df["INCIDENT_DATE"], errors="coerce")
 
     int_cols = [
-        "INCIDENT_MONTH", "INCIDENT_YEAR", "AC_MASS", "TYPE_ENG", "NUM_ENGS",
+        "INCIDENT_MONTH", "INCIDENT_YEAR", "AC_MASS", "NUM_ENGS",
         "NUM_SEEN", "NUM_STRUCK", "NR_INJURIES", "NR_FATALITIES",
     ]
     for col in int_cols:
