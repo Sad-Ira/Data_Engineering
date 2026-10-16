@@ -1,4 +1,4 @@
-# Homework 4 - collecting a dataset from a public API
+<img width="1280" height="1084" alt="telegram-cloud-photo-size-2-5373330702838997479-y" src="https://github.com/user-attachments/assets/51e33e79-b83e-49cc-87a2-4d84f5b64c5d" /># Homework 4 - collecting a dataset from a public API
 
 The script `read_api.py` collects a dataset of the first-generation pokemon
 (Kanto, #1-151) from [PokéAPI](https://pokeapi.co), a free API that needs no key
@@ -48,8 +48,8 @@ The full run takes about 2 minutes.
 
 First 20 rows of the dataset:
 
-![dataset head](img/dataset_head.png)
+![dataset head](https://github.com/user-attachments/assets/d98191b6-1e60-482e-b0ea-38a9326cc4f7)
 
 Downloaded sprites:
 
-![sprites](img/sprites.png)
+![sprites](https://github.com/user-attachments/assets/2428794a-5372-479f-b13e-3e186860e3ea)
