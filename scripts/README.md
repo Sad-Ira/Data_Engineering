@@ -1,4 +1,4 @@
-<img width="1280" height="1084" alt="telegram-cloud-photo-size-2-5373330702838997479-y" src="https://github.com/user-attachments/assets/51e33e79-b83e-49cc-87a2-4d84f5b64c5d" /># Homework 4 - collecting a dataset from a public API
+# Homework 4 - collecting a dataset from a public API
 
 The script `read_api.py` collects a dataset of the first-generation pokemon
 (Kanto, #1-151) from [PokéAPI](https://pokeapi.co), a free API that needs no key
