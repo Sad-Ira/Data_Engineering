@@ -13,7 +13,9 @@ SPRITES_DIR = DATA_DIR / "pokemon_sprites"
 POKEMON_LIMIT = 151
 SPRITES_LIMIT = 12
 REQUEST_DELAY = 0.2
-TIMEOUT = 15  
+TIMEOUT = 15
+
+STAT_NAMES = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"]
 
 
 def fetch_pokemon_urls(limit: int = POKEMON_LIMIT) -> list[str]:
@@ -36,7 +38,7 @@ def extract_row(pokemon: dict) -> dict:
         "name": pokemon["name"],
         "type_1": types[0]["type"]["name"],
         "type_2": types[1]["type"]["name"] if len(types) > 1 else pd.NA,
-        # API отдаёт рост в дециметрах, вес в гектограммах — приводим к нормальным единицам
+        # the API returns height in decimetres and weight in hectograms
         "height_m": pokemon["height"] / 10,
         "weight_kg": pokemon["weight"] / 10,
         "base_experience": pokemon["base_experience"],
@@ -46,7 +48,7 @@ def extract_row(pokemon: dict) -> dict:
         "special_attack": stats["special-attack"],
         "special_defense": stats["special-defense"],
         "speed": stats["speed"],
-        "total_stats": sum(stats.values()),
+        "total_stats": sum(stats[name] for name in STAT_NAMES),
         "sprite_url": sprite,
     }
 
@@ -126,6 +128,7 @@ if __name__ == "__main__":
 
     print(df.head(10))
     print(f"\nDataset size: {df.shape[0]} rows x {df.shape[1]} columns")
+    print(f"Collected {len(df)} of {POKEMON_LIMIT} pokemon")
     print("\nColumn dtypes:")
     print(df.dtypes.to_string())
 
