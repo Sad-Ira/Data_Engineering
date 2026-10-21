@@ -35,18 +35,20 @@ Result: 151 rows x 15 columns, `data/pokemon.csv` (~20 KB), sprites in
 
 ## Run
 
-From the repository root, with the virtual environment activated:
+From the repository root, with the virtual environment activated
+(see [Deployment](../README.md#deployment) in the main README):
 
 ```bash
 pip install -r requirements.txt
 python scripts/read_api.py
 ```
 
-The full run takes about 2 minutes.
+All dependencies, including `requests` used by this script, are listed in the
+root `requirements.txt`. The full run takes about 2 minutes.
 
 ## Output
 
-First 20 rows of the dataset:
+First 10 rows of the dataset:
 
 ![dataset head](https://github.com/user-attachments/assets/d98191b6-1e60-482e-b0ea-38a9326cc4f7)
 
