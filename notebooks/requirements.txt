@@ -1,0 +1,6 @@
+pandas==2.2.3
+gdown==5.2.0
+pyarrow==21.0.0
+requests==2.34.2
+matplotlib==3.11.2
+ipykernel==7.4.0
