@@ -28,6 +28,15 @@ The parquet file is 38 MB vs 167 MB for the CSV, and it keeps the dtypes on
 `pd.read_parquet` without re-parsing. It lives in `data/`, which is ignored
 by git, so the binary file never gets into the repository.
 
+## Homework 5 - EDA
+
+`notebooks/EDA.ipynb` - exploratory analysis of `faa_aws.csv` from the data quality side:
+structure and types, missing values and duplicates, outliers, consistency between fields,
+quality metrics and what to fix in the ETL pipeline.
+
+The notebook reads `data/faa_aws.csv` and downloads it with `data_loader.py` if the file is missing.
+It has its own `notebooks/requirements.txt` (the root dependencies plus `matplotlib` and `ipykernel`).
+
 ## Deployment
 
 ```bash
@@ -39,7 +48,8 @@ source .venv/bin/activate      # macOS / Linux
 # .venv\Scripts\activate       # Windows
 
 # 3. Install the dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt              # data_loader.py and scripts/
+pip install -r notebooks/requirements.txt    # EDA notebook
 ```
 
 ### Run
@@ -56,9 +66,15 @@ Expected output:
 Dataset size: 316839 rows x 101 columns
 ```
 
+To open the notebook in VS Code, install the Python and Jupyter extensions, open
+`notebooks/EDA.ipynb` and choose the `.venv` kernel in the top right corner.
+
 ## Structure
 
 - `data_loader.py` - dataset download, type casting and parquet export
+- `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5)
+- `scripts/read_api.py` - PokeAPI dataset (homework 4), see `scripts/README.md`
 - `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
-- `requirements.txt` - dependencies
+- `requirements.txt` - dependencies of `data_loader.py` and `scripts/`
+- `notebooks/requirements.txt` - dependencies of the EDA notebook
 - `.gitignore` - keeps the dataset (175 MB), the parquet file and the virtual environment out of git
