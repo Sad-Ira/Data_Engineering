@@ -35,7 +35,21 @@ structure and types, missing values and duplicates, outliers, consistency betwee
 quality metrics and what to fix in the ETL pipeline.
 
 The notebook reads `data/faa_aws.csv` and downloads it with `data_loader.py` if the file is missing.
-It has its own `notebooks/requirements.txt` (the root dependencies plus `matplotlib` and `ipykernel`).
+It has its own `notebooks/requirements.txt` (the root dependencies plus `matplotlib`, `seaborn` and `ipykernel`).
+
+## Homework 6 - visualization
+
+The charts in `notebooks/EDA.ipynb` are drawn with `seaborn` (matplotlib only sets figure size and titles).
+Besides the redrawn ones, new charts show the data problems found in the EDA:
+
+- reports per year and month (heatmap) - seasonality and the incomplete end of the export;
+- missing values by year (heatmap) - completeness changes over time, the jump of empty `COMMENTS` in 2019;
+- `HEIGHT` by flight phase (boxplot) - why a global IQR fence does not fit this data;
+- repair cost on a log scale and `SPEED` distribution - log-normal costs and rounded speeds;
+- airport coordinates (scatter) - the airport with a flipped longitude sign;
+- `TIME_OF_DAY` by hour of `TIME` - contradictions that look like the 12-hour time format;
+- damaged-but-not-struck flags by aircraft part;
+- correlation heatmap, quality metrics vs targets and the time to the last update (ECDF).
 
 ## Deployment
 
@@ -72,7 +86,7 @@ To open the notebook in VS Code, install the Python and Jupyter extensions, open
 ## Structure
 
 - `data_loader.py` - dataset download, type casting and parquet export
-- `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5)
+- `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5) with seaborn charts (homework 6)
 - `scripts/read_api.py` - PokeAPI dataset (homework 4), see `scripts/README.md`
 - `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
 - `requirements.txt` - dependencies of `data_loader.py` and `scripts/`
