@@ -31,16 +31,19 @@ def main():
     host, port, user, password, database = row
     url = URL.create("postgresql+psycopg2", username=user, password=password,
                      host=host, port=int(port), database=database)
-    engine = create_engine(url)
     data = pd.read_csv(ROOT / "data" / "faa_aws.csv", nrows=ROWS, low_memory=False)
     if len(data) != ROWS:
         raise ValueError(f"The dataset must contain at least {ROWS} rows")
 
-    with engine.begin() as connection:
-        data.to_sql(TABLE, connection, index=False, if_exists="fail")
-    engine.dispose()
+    engine = create_engine(url)
+    try:
+        with engine.begin() as connection:
+            data.to_sql(TABLE, connection, index=False, if_exists="fail")
+    finally:
+        engine.dispose()
     print(f"Written {len(data)} rows to {TABLE}")
 
 
 if __name__ == "__main__":
     main()
+    
