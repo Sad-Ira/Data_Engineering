@@ -51,6 +51,28 @@ Besides the redrawn ones, new charts show the data problems found in the EDA:
 - damaged-but-not-struck flags by aircraft part;
 - correlation heatmap, quality metrics vs targets and the time to the last update (ECDF).
 
+## Homework 7 - PostgreSQL
+
+`scripts/write_to_db.py` reads the `homeworks` account from the SQLite table
+`access` in `creds.db` and writes the first 100 rows of `faa_aws.csv` to the
+PostgreSQL table `aibatovais`. It does not overwrite an existing table.
+
+Keep `creds.db` outside the repository and create a local `.env` file in the
+project root with the path to it:
+
+```text
+CREDS_PATH=/absolute/path/to/creds.db
+```
+
+Install the root dependencies as described below and make sure the dataset is
+available at `data/faa_aws.csv` (run `python data_loader.py` if needed). Then run:
+
+```bash
+python scripts/write_to_db.py
+```
+
+Both `.env` and `creds.db` are ignored by git. Never commit access credentials.
+
 ## Deployment
 
 ```bash
@@ -88,6 +110,7 @@ To open the notebook in VS Code, install the Python and Jupyter extensions, open
 - `data_loader.py` - dataset download, type casting and parquet export
 - `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5) with seaborn charts (homework 6)
 - `scripts/read_api.py` - PokeAPI dataset (homework 4), see `scripts/README.md`
+- `scripts/write_to_db.py` - writes 100 dataset rows to PostgreSQL (homework 7), see `scripts/README.md`
 - `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
 - `requirements.txt` - dependencies of `data_loader.py` and `scripts/`
 - `notebooks/requirements.txt` - dependencies of the EDA notebook
