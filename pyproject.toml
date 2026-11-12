@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "faa-strikes-etl"
+version = "0.1.0"
+description = "ETL pipeline for the FAA Wildlife Strike dataset: Google Drive -> parquet -> PostgreSQL"
+readme = "README.md"
+requires-python = ">=3.10"
+# everything the etl package needs to run
+dependencies = [
+    "pandas==2.2.3",
+    "pyarrow==21.0.0",
+    "gdown==5.2.0",
+    "SQLAlchemy==2.0.36",
+    "psycopg2-binary==2.9.10",
+    "python-dotenv==1.0.1",
+]
+
+[project.optional-dependencies]
+# tests, linter, EDA notebook and the homework 4 script, not needed for the ETL
+dev = [
+    "pytest==8.3.4",
+    "ruff==0.8.4",
+    "ipykernel==7.4.0",
+    "matplotlib==3.11.2",
+    "seaborn==0.13.2",
+    "requests==2.34.2",
+]
+
+[project.scripts]
+etl = "etl.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+src = ["src"]

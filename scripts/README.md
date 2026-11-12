@@ -41,12 +41,12 @@ From the repository root, with the virtual environment activated
 (see [Deployment](../README.md#deployment) in the main README):
 
 ```bash
-pip install -r requirements.txt
+pip install -e ".[dev]"
 python scripts/read_api.py
 ```
 
-All dependencies, including `requests` used by this script, are listed in the
-root `requirements.txt`. The full run takes about 2 minutes.
+`requests` used by this script is in the `dev` block of `pyproject.toml`,
+it is not needed for the ETL. The full run takes about 2 minutes.
 
 ### Output
 
@@ -73,3 +73,7 @@ in the main README. Run from the repository root:
 python scripts/read_creds.py /absolute/path/to/creds.db
 python scripts/write_to_db.py
 ```
+
+Since homework 8 the same steps are part of the `etl` package
+(`etl --creds /absolute/path/to/creds.db`), see
+[Homework 8](../README.md#homework-8---etl-package).

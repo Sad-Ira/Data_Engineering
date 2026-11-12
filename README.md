@@ -35,7 +35,7 @@ structure and types, missing values and duplicates, outliers, consistency betwee
 quality metrics and what to fix in the ETL pipeline.
 
 The notebook reads `data/faa_aws.csv` and downloads it with `data_loader.py` if the file is missing.
-It has its own `notebooks/requirements.txt` (the root dependencies plus `matplotlib`, `seaborn` and `ipykernel`).
+Its libraries (`matplotlib`, `seaborn`, `ipykernel`) are in the `dev` block of `pyproject.toml`.
 
 ## Homework 6 - visualization
 
@@ -65,7 +65,7 @@ The upload is split into two scripts:
 The parquet file keeps the dtypes set in `data_loader.py`, so the table gets
 proper column types (timestamp, integer, boolean) instead of plain text.
 
-Install the root dependencies as described below and create the parquet file
+Install the dependencies as described below and create the parquet file
 if it is not there yet (`python data_loader.py`). Then, from the repository root:
 
 ```bash
@@ -77,6 +77,88 @@ python scripts/write_to_db.py
 Keep `creds.db` outside the repository. Both `.env` and `creds.db` are ignored
 by git. Never commit access credentials.
 
+## Homework 8 - ETL package
+
+The `etl` package in `src/` runs the whole data preparation cycle in one command:
+it downloads the raw dataset, cleans it, validates the result, saves the clean
+parquet file and writes a sample (100 rows max) to PostgreSQL. The package does
+not import the old scripts, the useful code from `data_loader.py` (homeworks 2-3)
+and `scripts/` (homework 7) is moved inside it.
+
+### Package structure
+
+```text
+src/etl/
+├── __init__.py    package description and version
+├── extract.py     download faa_aws.csv from Google Drive (once) and read it
+├── transform.py   cleaning and type casting, the steps come from the EDA
+├── validate.py    checks of the clean data, all problems are reported together
+├── load.py        save the clean parquet, build the DB URL from .env, write the sample
+├── creds.py       copy the PostgreSQL access from creds.db to .env
+└── main.py        command line entry point, runs extract -> transform -> validate -> load
+```
+
+### What happens to the data
+
+`transform.py` follows the recommendations from section 8 of the EDA:
+
+1. strings are trimmed (`AC_CLASS` was `'A  '`), blank strings become `NaN`
+   (`TIME` had 14 105 values of only spaces);
+2. placeholders become `NaN`: `ZZZZ` / `UNKNOWN` airport, `UNK` / `UNKNOWN` operator,
+   `UNKNOWN` aircraft, `Unknown` in `WARNED`;
+3. constant columns `REPORTED_NAME`, `REPORTED_TITLE`, `TRANSFER` are dropped;
+4. 61 reports sent twice with a new `INDEX_NR` are dropped;
+5. coordinates in other formats (7 rows) become `NaN`, the airport in Kansas
+   with a flipped longitude sign is fixed;
+6. `None` is removed from precipitation lists like `None, Rain`;
+7. types are cast: dates, nullable integers, floats, booleans, categories;
+   `NUM_SEEN` and `NUM_STRUCK` are ranges (`2-10`), so they become ordered categories;
+8. a part that is damaged or ingested something is marked as struck;
+9. contradictions that can't be fixed for sure are flagged, not changed:
+   `FLAG_TIME_CONFLICT` (night at noon, day at 2 am) and
+   `FLAG_UPDATED_BEFORE_INCIDENT`.
+
+`validate.py` then checks the required columns, dtypes, unique `INDEX_NR`,
+no duplicates, value ranges (coordinates, month, year, height, speed, costs),
+month and year against the date, damaged parts against struck ones and extra
+spaces in strings. If something fails, the pipeline stops before the database.
+
+Result: 316 778 rows x 100 columns in `data/faa_aws_clean.parquet` (38 MB),
+the first rows go to the table `aibatovais`.
+
+### Run
+
+Install the package as described in [Deployment](#deployment), then from the
+repository root:
+
+```bash
+# first run: copy the database access from creds.db to .env and load 100 rows
+etl --creds /absolute/path/to/creds.db
+
+# next runs take the access from .env
+etl --rows 50 --if-exists replace
+
+# only download, clean and validate, without the database
+etl --skip-db
+```
+
+`python -m etl.main ...` works the same way. Arguments:
+
+| argument | default | description |
+|---|---|---|
+| `--rows` | `100` | how many rows to write to the database, 1-100 |
+| `--table` | `aibatovais` | PostgreSQL table name |
+| `--if-exists` | `fail` | `fail` keeps an existing table, `replace` overwrites it, `append` adds rows |
+| `--data-dir` | `data` | folder for the raw CSV and the clean parquet |
+| `--creds` | - | path to `creds.db`, copies the access to `.env` before loading |
+| `--skip-db` | off | stop after the parquet file |
+
+The table `aibatovais` already exists after homework 7, so use
+`--if-exists replace` to write the clean data there. The database access is
+checked before the data is processed, so a missing `.env` is reported at once.
+
+Tests: `pytest` (they don't need the dataset or the database).
+
 ## Deployment
 
 ```bash
@@ -87,36 +169,43 @@ python3 -m venv .venv
 source .venv/bin/activate      # macOS / Linux
 # .venv\Scripts\activate       # Windows
 
-# 3. Install the dependencies
-pip install -r requirements.txt              # data_loader.py and scripts/
-pip install -r notebooks/requirements.txt    # EDA notebook
+# 3. Install the etl package with its dependencies
+pip install -e .
+
+# or together with the dev block: tests, linter, EDA notebook, homework 4 script
+pip install -e ".[dev]"
 ```
+
+All dependencies are in `pyproject.toml`: `dependencies` is what the ETL needs
+to run, the `dev` block has the service libraries (`pytest`, `ruff`, `ipykernel`,
+`matplotlib`, `seaborn`, `requests`).
 
 ### Run
 
 ```bash
-python data_loader.py
+etl --skip-db
 ```
 
 On the first run `faa_aws.csv` (~175 MB) is downloaded from Google Drive into
-the `data/` folder, then the script prints the first 10 rows of the dataset.
-Expected output:
+the `data/` folder, the next runs reuse it. See [Homework 8](#homework-8---etl-package)
+for loading to the database.
 
-```
-Dataset size: 316839 rows x 101 columns
-```
+The old loader from homeworks 2-3 still works: `python data_loader.py`.
 
 To open the notebook in VS Code, install the Python and Jupyter extensions, open
 `notebooks/EDA.ipynb` and choose the `.venv` kernel in the top right corner.
 
 ## Structure
 
-- `data_loader.py` - dataset download, type casting and parquet export
-- `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5) with seaborn charts (homework 6)
-- `scripts/read_api.py` - PokeAPI dataset (homework 4), see `scripts/README.md`
-- `scripts/read_creds.py` - copies PostgreSQL access from `creds.db` to `.env` (homework 7)
-- `scripts/write_to_db.py` - writes 100 rows of the parquet dataset to PostgreSQL (homework 7), see `scripts/README.md`
-- `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
-- `requirements.txt` - dependencies of `data_loader.py` and `scripts/`
-- `notebooks/requirements.txt` - dependencies of the EDA notebook
-- `.gitignore` - keeps the dataset (175 MB), the parquet file and the virtual environment out of git
+```text
+Data_Engineering/
+├── src/etl/              ETL package (homework 8), see "Package structure" above
+├── tests/                pytest tests of the etl package
+├── notebooks/EDA.ipynb   exploratory data analysis (homework 5) with seaborn charts (homework 6)
+├── scripts/              read_api.py (homework 4), read_creds.py and write_to_db.py (homework 7)
+├── data_loader.py        dataset download, type casting and parquet export (homeworks 2-3)
+├── data/                 raw CSV and parquet files, created on the first run (not in git)
+├── pyproject.toml        package settings, dependencies and the dev block
+├── .env                  database access, created by etl --creds (not in git)
+└── .gitignore            keeps data, .env, creds.db and the virtual environment out of git
+```
