@@ -60,13 +60,16 @@ Downloaded sprites:
 
 ## Homework 7 - writing to PostgreSQL
 
-`write_to_db.py` reads access details from the SQLite database `creds.db` and
-writes the first 100 rows of `data/faa_aws.csv` to the `aibatovais` table in
-PostgreSQL. It does not overwrite an existing table.
+- `read_creds.py` reads access details from the SQLite database `creds.db`
+  and saves them to `.env` in the repository root;
+- `write_to_db.py` reads the access details from `.env` and writes the first
+  100 rows of `data/faa_aws.parquet` to the `aibatovais` table in PostgreSQL.
+  It does not overwrite an existing table.
 
 For setup and instructions, see [Homework 7](../README.md#homework-7---postgresql)
 in the main README. Run from the repository root:
 
 ```bash
+python scripts/read_creds.py /absolute/path/to/creds.db
 python scripts/write_to_db.py
 ```

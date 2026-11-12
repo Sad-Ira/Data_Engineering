@@ -1,49 +1,63 @@
 import os
-import sqlite3
-from contextlib import closing
 from pathlib import Path
 
 import pandas as pd
+import pyarrow.dataset as ds
 from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine
 
 ROOT = Path(__file__).resolve().parent.parent
-DATABASE = "homeworks"
+PARQUET_PATH = ROOT / "data" / "faa_aws.parquet"
 TABLE = "aibatovais"
 ROWS = 100
+ENV_VARS = ["DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME"]
 
 
-def main():
+def get_db_url() -> URL:
     load_dotenv(ROOT / ".env")
-    creds = os.environ.get("CREDS_PATH")
-    if not creds:
-        raise SystemExit("Set CREDS_PATH in .env (see README.md)")
+    missing = [name for name in ENV_VARS if not os.environ.get(name)]
+    if missing:
+        raise SystemExit(
+            f"Missing {', '.join(missing)} in .env, "
+            "run scripts/read_creds.py first (see README.md)"
+        )
 
-    creds_path = Path(creds).expanduser().resolve()
-    with closing(sqlite3.connect(f"{creds_path.as_uri()}?mode=ro", uri=True)) as connection:
-        row = connection.execute(
-            "SELECT url, port, user, pass, db_name FROM access WHERE db_name = ?",
-            (DATABASE,),
-        ).fetchone()
-    if row is None:
-        raise SystemExit(f"No access to {DATABASE} found in creds.db")
+    return URL.create(
+        "postgresql+psycopg2",
+        username=os.environ["DB_USER"],
+        password=os.environ["DB_PASSWORD"],
+        host=os.environ["DB_HOST"],
+        port=int(os.environ["DB_PORT"]),
+        database=os.environ["DB_NAME"],
+    )
 
-    host, port, user, password, database = row
-    url = URL.create("postgresql+psycopg2", username=user, password=password,
-                     host=host, port=int(port), database=database)
-    data = pd.read_csv(ROOT / "data" / "faa_aws.csv", nrows=ROWS, low_memory=False)
-    if len(data) != ROWS:
-        raise ValueError(f"The dataset must contain at least {ROWS} rows")
 
+def read_dataset(path: Path = PARQUET_PATH, rows: int = ROWS) -> pd.DataFrame:
+    if not path.is_file():
+        raise SystemExit(f"File {path} not found, run python data_loader.py first")
+
+    # read only the first rows instead of the whole file, dtypes are kept
+    data = ds.dataset(path).head(rows).to_pandas()
+    if len(data) != rows:
+        raise ValueError(f"The dataset must contain at least {rows} rows")
+    return data
+
+
+def write_table(data: pd.DataFrame, url: URL, table: str = TABLE) -> None:
     engine = create_engine(url)
     try:
         with engine.begin() as connection:
-            data.to_sql(TABLE, connection, index=False, if_exists="fail")
+            data.to_sql(table, connection, index=False, if_exists="fail")
     finally:
         engine.dispose()
+
+
+def main():
+    url = get_db_url()
+    data = read_dataset()
+    write_table(data, url)
     print(f"Written {len(data)} rows to {TABLE}")
 
 
 if __name__ == "__main__":
     main()
-    
