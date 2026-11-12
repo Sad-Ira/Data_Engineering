@@ -18,7 +18,8 @@ REQUIRED_COLUMNS = [
     "AIRPORT_ID", "SPECIES", "NUM_STRUCK", "INDICATED_DAMAGE",
 ]
 
-# limits from the EDA: no negative values, 32 000 ft and 541 kt are the real maximums
+# The EDA observed maxima of 32,000 ft and 541 kt. The validation limits
+# allow headroom above those observations while still catching extreme values.
 RANGES = {
     "AIRPORT_LATITUDE": (-90, 90),
     "AIRPORT_LONGITUDE": (-180, 180),

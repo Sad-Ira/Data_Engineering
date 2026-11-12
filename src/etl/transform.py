@@ -150,13 +150,16 @@ def fill_struck_flags(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     fixed = 0
     for part in PARTS:
-        struck = df[f"STR_{part}"]
-        hit = df[f"DAM_{part}"].fillna(False)
-        if f"ING_{part}" in df.columns:
-            hit = hit | df[f"ING_{part}"].fillna(False)
+        struck_col = f"STR_{part}"
+        if struck_col not in df.columns:
+            continue
+        struck = df[struck_col]
+        hit = pd.Series(False, index=df.index)
+        for col in _present(df, [f"DAM_{part}", f"ING_{part}"]):
+            hit = hit | df[col].fillna(False)
         missing = hit & ~struck.fillna(False)
         fixed += int(missing.sum())
-        df.loc[missing, f"STR_{part}"] = True
+        df.loc[missing, struck_col] = True
     log.info("Set the struck flag for %d damaged parts", fixed)
     return df
 

@@ -64,6 +64,21 @@ def test_fill_struck_flags():
     assert result["STR_NOSE"].tolist() == [True, False]
 
 
+def test_fill_struck_flags_with_missing_columns():
+    df = pd.DataFrame({
+        "STR_NOSE": [False, False],
+        "DAM_NOSE": [True, False],
+        "STR_ENG1": [False, False],
+        "ING_ENG1": [False, True],
+        "DAM_RAD": [True, False],
+    }, dtype="boolean")
+    result = t.fill_struck_flags(df)
+    assert result["STR_NOSE"].tolist() == [True, False]
+    assert result["STR_ENG1"].tolist() == [False, True]
+    assert "STR_RAD" not in result.columns
+    assert not df["STR_NOSE"].any()
+
+
 def test_add_quality_flags():
     df = pd.DataFrame({
         "TIME": ["12:00", "2:00", "13:00"],

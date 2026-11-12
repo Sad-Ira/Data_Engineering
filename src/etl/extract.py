@@ -37,6 +37,12 @@ def download_dataset(path: Path, file_id: str = FILE_ID) -> Path:
             "Download failed, check the internet connection and run the pipeline again"
         ) from error
 
+    if not part.exists():
+        raise RuntimeError(
+            "Download failed without creating a file; check the internet connection "
+            "and access to the Google Drive file, then try again"
+        )
+
     if not looks_like_csv(part):
         part.unlink(missing_ok=True)
         raise RuntimeError(
