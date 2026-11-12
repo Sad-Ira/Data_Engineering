@@ -51,6 +51,32 @@ Besides the redrawn ones, new charts show the data problems found in the EDA:
 - damaged-but-not-struck flags by aircraft part;
 - correlation heatmap, quality metrics vs targets and the time to the last update (ECDF).
 
+## Homework 7 - PostgreSQL
+
+The upload is split into two scripts:
+
+- `scripts/read_creds.py` reads the `homeworks` account from the SQLite table
+  `access` in `creds.db` and saves it to the local `.env` file as
+  `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` and `DB_NAME`;
+- `scripts/write_to_db.py` takes these variables from `.env`, reads the first
+  100 rows of `data/faa_aws.parquet` and writes them to the PostgreSQL table
+  `aibatovais`. It does not overwrite an existing table.
+
+The parquet file keeps the dtypes set in `data_loader.py`, so the table gets
+proper column types (timestamp, integer, boolean) instead of plain text.
+
+Install the root dependencies as described below and create the parquet file
+if it is not there yet (`python data_loader.py`). Then, from the repository root:
+
+```bash
+python scripts/read_creds.py /absolute/path/to/creds.db
+python scripts/write_to_db.py
+```
+
+`read_creds.py` only needs to be run once, other variables in `.env` are kept.
+Keep `creds.db` outside the repository. Both `.env` and `creds.db` are ignored
+by git. Never commit access credentials.
+
 ## Deployment
 
 ```bash
@@ -88,6 +114,8 @@ To open the notebook in VS Code, install the Python and Jupyter extensions, open
 - `data_loader.py` - dataset download, type casting and parquet export
 - `notebooks/EDA.ipynb` - exploratory data analysis of the dataset (homework 5) with seaborn charts (homework 6)
 - `scripts/read_api.py` - PokeAPI dataset (homework 4), see `scripts/README.md`
+- `scripts/read_creds.py` - copies PostgreSQL access from `creds.db` to `.env` (homework 7)
+- `scripts/write_to_db.py` - writes 100 rows of the parquet dataset to PostgreSQL (homework 7), see `scripts/README.md`
 - `data/` - local copy of the dataset and the parquet file, created by the script on the first run (not committed to git)
 - `requirements.txt` - dependencies of `data_loader.py` and `scripts/`
 - `notebooks/requirements.txt` - dependencies of the EDA notebook

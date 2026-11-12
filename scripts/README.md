@@ -1,4 +1,6 @@
-# Homework 4 - collecting a dataset from a public API
+# Scripts
+
+## Homework 4 - collecting a dataset from a public API
 
 The script `read_api.py` collects a dataset of the first-generation pokemon
 (Kanto, #1-151) from [PokéAPI](https://pokeapi.co), a free API that needs no key
@@ -17,7 +19,7 @@ How it works:
 Height and weight come from the API in decimetres and hectograms, the script
 converts them to metres and kilograms.
 
-## Dataset
+### Dataset
 
 | column | dtype | description |
 |---|---|---|
@@ -33,7 +35,7 @@ converts them to metres and kilograms.
 Result: 151 rows x 15 columns, `data/pokemon.csv` (~20 KB), sprites in
 `data/pokemon_sprites/`. The `data/` folder is ignored by git.
 
-## Run
+### Run
 
 From the repository root, with the virtual environment activated
 (see [Deployment](../README.md#deployment) in the main README):
@@ -46,7 +48,7 @@ python scripts/read_api.py
 All dependencies, including `requests` used by this script, are listed in the
 root `requirements.txt`. The full run takes about 2 minutes.
 
-## Output
+### Output
 
 First 10 rows of the dataset:
 
@@ -55,3 +57,19 @@ First 10 rows of the dataset:
 Downloaded sprites:
 
 ![sprites](https://github.com/user-attachments/assets/2428794a-5372-479f-b13e-3e186860e3ea)
+
+## Homework 7 - writing to PostgreSQL
+
+- `read_creds.py` reads access details from the SQLite database `creds.db`
+  and saves them to `.env` in the repository root;
+- `write_to_db.py` reads the access details from `.env` and writes the first
+  100 rows of `data/faa_aws.parquet` to the `aibatovais` table in PostgreSQL.
+  It does not overwrite an existing table.
+
+For setup and instructions, see [Homework 7](../README.md#homework-7---postgresql)
+in the main README. Run from the repository root:
+
+```bash
+python scripts/read_creds.py /absolute/path/to/creds.db
+python scripts/write_to_db.py
+```

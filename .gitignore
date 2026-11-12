@@ -219,3 +219,7 @@ __marimo__/
 
 # Local data (dataset, parquet, downloaded images)
 data/
+
+# Database credentials
+creds.db
+*.db-journal
