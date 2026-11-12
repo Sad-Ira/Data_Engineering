@@ -3,6 +3,8 @@ import sqlite3
 import pytest
 
 from etl.creds import read_creds, save_env
+from etl.load import LoadError
+from etl import main as etl_main
 from etl.main import parse_args
 
 
@@ -34,3 +36,23 @@ def test_creds_to_env(tmp_path):
 def test_creds_errors(tmp_path):
     with pytest.raises(FileNotFoundError):
         read_creds(tmp_path / "nope.db")
+
+
+def test_main_reports_load_errors(monkeypatch, caplog):
+    def fail(args):
+        raise LoadError("bad load input")
+
+    monkeypatch.setattr(etl_main, "run", fail)
+    with pytest.raises(SystemExit) as error:
+        etl_main.main([])
+    assert error.value.code == 1
+    assert "bad load input" in caplog.text
+
+
+def test_main_does_not_hide_unexpected_value_errors(monkeypatch):
+    def fail(args):
+        raise ValueError("unexpected bug")
+
+    monkeypatch.setattr(etl_main, "run", fail)
+    with pytest.raises(ValueError, match="unexpected bug"):
+        etl_main.main([])

@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from etl.creds import read_creds, save_env
 from etl.extract import extract
-from etl.load import MAX_ROWS, get_db_url, load_to_db, save_parquet
+from etl.load import MAX_ROWS, LoadError, get_db_url, load_to_db, save_parquet
 from etl.transform import transform
 from etl.validate import ValidationError, validate
 
@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     try:
         run(args)
-    except (ValidationError, FileNotFoundError, LookupError, RuntimeError, ValueError,
+    except (ValidationError, FileNotFoundError, LookupError, RuntimeError, LoadError,
             SQLAlchemyError) as error:
         if isinstance(error, SQLAlchemyError):
             # the full message also repeats the SQL query with all the values

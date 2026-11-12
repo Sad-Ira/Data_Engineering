@@ -14,6 +14,10 @@ MAX_ROWS = 100
 ENV_VARS = ["DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME"]
 
 
+class LoadError(ValueError):
+    """Invalid load configuration or input."""
+
+
 def save_parquet(df: pd.DataFrame, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path, index=False)
@@ -31,19 +35,24 @@ def get_db_url() -> URL:
             "--creds /path/to/creds.db once (see README.md)"
         )
 
+    try:
+        port = int(os.environ["DB_PORT"])
+    except ValueError as error:
+        raise LoadError("DB_PORT must be an integer") from error
+
     return URL.create(
         "postgresql+psycopg2",
         username=os.environ["DB_USER"],
         password=os.environ["DB_PASSWORD"],
         host=os.environ["DB_HOST"],
-        port=int(os.environ["DB_PORT"]),
+        port=port,
         database=os.environ["DB_NAME"],
     )
 
 
 def load_to_db(df: pd.DataFrame, table: str, url: URL, if_exists: str = "fail") -> int:
     if len(df) > MAX_ROWS:
-        raise ValueError(f"Only {MAX_ROWS} rows can be loaded to the database, got {len(df)}")
+        raise LoadError(f"Only {MAX_ROWS} rows can be loaded to the database, got {len(df)}")
 
     engine = create_engine(url)
     try:
